@@ -2,8 +2,8 @@ import { createElement } from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App.js';
 
-import { CounterEndpoint } from './generated/endpoints.js';
+import  { addOne } from '../frontend/generated/com/example/application/endpoints/CounterEndpoint.js';
 
 createRoot(document.getElementById('outlet')!).render(createElement(App));
 
-CounterEndpoint.addOne(1).then((result) => console.log(result));
+addOne(1).then((result) => console.log(result));
