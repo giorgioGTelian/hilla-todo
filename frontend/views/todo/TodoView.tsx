@@ -35,6 +35,10 @@ export default function TodoView() {
     }
   }
 
+  function clearTodos() {
+    setTodos([]);
+  }
+
   return (
     <>
     <h1 className="m-m">Todo</h1>
@@ -57,6 +61,11 @@ export default function TodoView() {
           <span>{todo.task}</span>
           </div>
         ))}
+        <div className="flex-grow m-m">
+        <Button theme="danger" onClick={clearTodos}>
+          Clear
+        </Button>
+        </div>
       </div>
     </>
   );
