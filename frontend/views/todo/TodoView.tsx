@@ -1,81 +1,61 @@
 import type Todo from '../../../frontend/generated/com/example/application/Todo.js';
 import { useEffect, useState } from 'react';
-import { FormikErrors, useFormik } from 'formik';
+
 import { Button } from '@hilla/react-components/Button.js';
 import { Checkbox } from '@hilla/react-components/Checkbox.js';
 import { TextField } from '@hilla/react-components/TextField.js';
 import { TodoEndpoint } from '../../../frontend/generated/endpoints.js';
-import { EndpointValidationError } from '@hilla/frontend';
+import { TodoEndpoint as TodoEndpointType } from '../../../frontend/generated/endpoints.js';
+
 
 export default function TodoView() {
-  const empty: Todo = { task: '', done: false };
-  const [todos, setTodos] = useState(Array<Todo>());
+  const [todos, setTodos] = useState<Todo[]>([]);
+  const [task, setTask] = useState('');
+
 
   useEffect(() => {
-    (async () => {
-      setTodos(await TodoEndpoint.findAll());
-    })();
-
-    return () => { };
+    TodoEndpoint.findAll().then(setTodos);
   }, []);
 
-  const formik = useFormik({
-    initialValues: empty,
-    onSubmit: async (value: Todo, { setSubmitting, setErrors }) => {
-      try {
-        const saved = (await TodoEndpoint.save(value)) ?? value;
-        setTodos([...todos, saved]);
-        formik.resetForm();
-      } catch (e: unknown) {
-        if (e instanceof EndpointValidationError) {
-          const errors: FormikErrors<Todo> = {};
-          for (const error of e.validationErrorData) {
-            if (typeof error.parameterName === 'string' && !(error.parameterName in empty)) {
-              const key = error.parameterName as string & keyof Todo;
-              errors[key] = error.message.substring(error.message.indexOf("validation error:"));
-            }
-          }
-          setErrors(errors);
-        }
-      } finally {
-        setSubmitting(false);
-      }
-    },
-  });
 
-async function changeStatus(todo: Todo, done: boolean) {
-  const newTodo = { ...todo, done: done };
-  const saved = await TodoEndpoint.save(newTodo) ?? newTodo;
-  setTodos(todos.map(item => item.id === todo.id ? saved : item));
-}
+  async function addTodo(){
+    const saved = await TodoEndpoint.add(task);
+    if(saved){
+      setTodos([...todos, saved]);
+      setTask('');
+    }
+  }
+
+  async function updateTodo(todo: Todo, done: boolean) {
+    const saved = await TodoEndpoint.update({ 
+      ...todo, done
+    });
+    if(saved){ 
+      setTodos(todos.map(existing => existing.id === saved.id ? saved : existing));
+    }
+  }
 
   return (
     <>
+    <h1 className="m-m">Todo</h1>
       <div className="m-m flex items-baseline gap-m">
-        <TextField
-          name="task"
-          label="Task"
-          value={formik.values.task}
-          onChange={formik.handleChange}
-          onBlur={formik.handleChange}
-          errorMessage={formik.errors.task}
-          invalid={formik.errors.task? true : false}
-        ></TextField>
+        <TextField value={task} onChange={ e => setTask(e.target.value)}  ></TextField>
         <Button
           theme="primary"
-          disabled={formik.isSubmitting}
-          onClick={formik.submitForm}
+          onClick={addTodo}
         >Add</Button>
       </div>
 
       <div className="m-m flex flex-col items-stretch gap-s">
         {todos.map(todo => (
+          <div key={todo.id}> 
           <Checkbox
-            key={todo.id}
             checked={todo.done}
-            onCheckedChanged={({ detail: { value } }) => changeStatus(todo, value)}>
+            onCheckedChanged={e => updateTodo(todo, e.detail.value)}>
             {todo.task}
           </Checkbox>
+          <span>{todo.task}</span>
+          </div>
         ))}
       </div>
     </>

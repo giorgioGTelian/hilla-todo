@@ -12,16 +12,16 @@ public class Todo {
   @GeneratedValue
   private Integer id;
 
-  private boolean done = false;
-
   @NotBlank 
   private String task;
 
-  public Todo() {}
+  private boolean done;
 
   public Todo(String task) {
     this.task = task;
   }
+
+  public Todo() {}
 
   public Integer getId() {
     return id;

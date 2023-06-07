@@ -20,7 +20,11 @@ public class TodoEndpoint {
     return repository.findAll();
   }
 
-  public Todo save(Todo todo) {
+  public Todo add(String task) {
+    return repository.save(new Todo(task));
+  }
+
+  public Todo update(Todo todo) {
     return repository.save(todo);
   }
 }
